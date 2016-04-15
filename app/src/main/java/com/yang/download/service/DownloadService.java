@@ -16,26 +16,36 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Created by yuy on 2016/4/14.
  */
 public class DownloadService extends Service {
 
-	private DownloadTask mTask = null;
+	private InitThread mInitThread = null;
+
+	//下载任务集合
+	private Map<Integer, DownloadTask> mTasks = new LinkedHashMap<>();
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		if (AppConfig.ACTION_START.equals(intent.getAction())) {
 			FileInfo fileInfo = (FileInfo) intent.getSerializableExtra("fileInfo");
 			Log.d("yang", "start fileInfo-->" + fileInfo.toString());
-
-			new InitThread(fileInfo).start();
+			//接到下载命令，启动初始化线程
+			mInitThread = new InitThread(fileInfo);
+//			mInitThread.start();
+			DownloadTask.sExecutorService.execute(mInitThread);
 		} else if (AppConfig.ACTION_STOP.equals(intent.getAction())) {
+			//暂停下载
 			FileInfo fileInfo = (FileInfo) intent.getSerializableExtra("fileInfo");
-			Log.d("yang", "stop fileInfo-->" + fileInfo.toString());
-			if (mTask != null) {
-				mTask.isPause = true;
+			//从集合中取出下载任务
+			DownloadTask task = mTasks.get(fileInfo.getId());
+			if (task != null) {
+				//停止下载任务
+				task.isPause = true;
 			}
 		}
 		return super.onStartCommand(intent, flags, startId);
@@ -57,10 +67,14 @@ public class DownloadService extends Service {
 		public boolean handleMessage(Message msg) {
 			switch (msg.what) {
 				case AppConfig.MSG_INIT:
+					//获得初始化结果
 					FileInfo fileInfo = (FileInfo) msg.obj;
 					Log.d("yang", "AppConfig.MSG_INIT ----fileInfo-->" + fileInfo);
-					mTask = new DownloadTask(DownloadService.this, fileInfo);
-					mTask.download();
+					//启动下载任务
+					DownloadTask task = new DownloadTask(DownloadService.this, fileInfo, 3);
+					task.download();
+					//把下载任务添加到集合中
+					mTasks.put(fileInfo.getId(), task);
 					break;
 			}
 			return false;
@@ -114,7 +128,9 @@ public class DownloadService extends Service {
 			} finally {
 
 				try {
+					assert conn != null;
 					conn.disconnect();
+					assert raf != null;
 					raf.close();
 				} catch (IOException e) {
 					e.printStackTrace();
