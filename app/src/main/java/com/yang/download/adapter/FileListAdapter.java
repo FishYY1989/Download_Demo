@@ -49,6 +49,7 @@ public class FileListAdapter extends BaseAdapter {
 	public View getView(final int position, View convertView, ViewGroup parent) {
 		ViewHolder viewHolder = null;
 		final FileInfo fileInfo = mFileList.get(position);
+
 		if (convertView == null) {
 			viewHolder = new ViewHolder();
 			convertView = LayoutInflater.from(mContext).inflate(R.layout.file_item, parent, false);
@@ -57,37 +58,37 @@ public class FileListAdapter extends BaseAdapter {
 			viewHolder.startBtn = (Button) convertView.findViewById(R.id.startBtn);
 			viewHolder.stopBtn = (Button) convertView.findViewById(R.id.stopBtn);
 
-			viewHolder.fileName.setText(fileInfo.getFileName());
-			viewHolder.progressBar.setMax(100);
-
-			viewHolder.startBtn.setOnClickListener(new View.OnClickListener() {
-				@Override
-				public void onClick(View v) {
-					//通知Service开始下载
-					Intent intent = new Intent(mContext, DownloadService.class);
-					intent.setAction(AppConfig.ACTION_START);
-					intent.putExtra("fileInfo", fileInfo);
-					mContext.startService(intent);
-				}
-			});
-
-			viewHolder.stopBtn.setOnClickListener(new View.OnClickListener() {
-				@Override
-				public void onClick(View v) {
-					Intent intent = new Intent(mContext, DownloadService.class);
-					intent.setAction(AppConfig.ACTION_STOP);
-					intent.putExtra("fileInfo", fileInfo);
-					mContext.startService(intent);
-				}
-			});
-
 			convertView.setTag(viewHolder);
 		} else {
 			viewHolder = (ViewHolder) convertView.getTag();
 		}
 
+		viewHolder.fileName.setText(fileInfo.getFileName());
+		viewHolder.progressBar.setMax(100);
+
+		viewHolder.startBtn.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				//通知Service开始下载
+				Intent intent = new Intent(mContext, DownloadService.class);
+				intent.setAction(AppConfig.ACTION_START);
+				intent.putExtra("fileInfo", fileInfo);
+				mContext.startService(intent);
+			}
+		});
+
+		viewHolder.stopBtn.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				Intent intent = new Intent(mContext, DownloadService.class);
+				intent.setAction(AppConfig.ACTION_STOP);
+				intent.putExtra("fileInfo", fileInfo);
+				mContext.startService(intent);
+			}
+		});
+
 		//更新进度
-		viewHolder.progressBar.setProgress(mFileList.get(position).getFinished());
+		viewHolder.progressBar.setProgress(fileInfo.getFinished());
 
 		return convertView;
 	}

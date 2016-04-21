@@ -3,6 +3,7 @@ package com.yang.download.db;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import com.yang.download.entity.ThreadInfo;
 
@@ -18,20 +19,23 @@ public class ThreadDaoImpl implements ThreadDao {
 
 	public ThreadDaoImpl(Context context) {
 		dbHelper = DBHelper.getInstance(context);
+		Log.d("yang","--ThreadDaoImpl--dbHelper-->"+dbHelper);
 	}
 
 	@Override
 	public synchronized void insertThread(ThreadInfo threadInfo) {
+		Log.d("yang","--insertThread--dbHelper-->"+dbHelper);
 		SQLiteDatabase db = dbHelper.getWritableDatabase();
 		db.execSQL("insert into thread_info(thread_id,url,start,end,finished) values (?,?,?,?,?)",
-				new Object[]{threadInfo.getId(), threadInfo.getUrl(), threadInfo.getStart(), threadInfo.getEnd(), threadInfo.getFinished()});
+				new Object[]{threadInfo.getId(), threadInfo.getUrl(), threadInfo.getStart(),
+						threadInfo.getEnd(), threadInfo.getFinished()});
 		db.close();
 	}
 
 	@Override
 	public synchronized void deleteThread(String url) {
 		SQLiteDatabase db = dbHelper.getWritableDatabase();
-		db.execSQL("delete from thread_info where url = ? and thread_id = ?",
+		db.execSQL("delete from thread_info where url = ?",
 				new Object[]{url});
 		db.close();
 	}
@@ -46,6 +50,7 @@ public class ThreadDaoImpl implements ThreadDao {
 
 	@Override
 	public List<ThreadInfo> getThreads(String url) {
+		Log.d("yang","--getThreads--dbHelper-->"+dbHelper);
 		SQLiteDatabase db = dbHelper.getReadableDatabase();
 		List<ThreadInfo> threadList = new ArrayList<>();
 		Cursor cursor = db.rawQuery("select * from thread_info where url = ?", new String[]{url});

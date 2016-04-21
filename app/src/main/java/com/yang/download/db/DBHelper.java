@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public class DBHelper extends SQLiteOpenHelper {
 
-	private static final String DB_NAME = "download_demo";
+	private static final String DB_NAME = "download_demo.db";
 	private static final int VERSION = 1;
 	private static DBHelper dbHelper = null;
 

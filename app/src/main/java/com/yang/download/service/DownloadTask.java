@@ -2,6 +2,7 @@ package com.yang.download.service;
 
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 
 import com.yang.download.AppConfig;
 import com.yang.download.db.ThreadDao;
@@ -51,12 +52,13 @@ public class DownloadTask {
 		List<ThreadInfo> threadInfos = mDao.getThreads(mFileInfo.getUrl());
 		ThreadInfo threadInfo = null;
 
-		if (threadInfos.isEmpty()) {
+		if (threadInfos.size() == 0) {
 			//获得每个线程的下载长度
 			int length = mFileInfo.getLength() / mThreadCount;
 			for (int i = 0; i < mThreadCount; i++) {
 				//创建线程信息
 				threadInfo = new ThreadInfo(i, mFileInfo.getUrl(), length * i, length * (i + 1) - 1, 0);
+				Log.d("yang", "--download-- id-->"+i+", start->"+(length * i) +", end->"+(length * (i + 1) - 1));
 				if (i == mThreadCount - 1) {
 					threadInfo.setEnd(mFileInfo.getLength());
 				}
@@ -115,21 +117,19 @@ public class DownloadTask {
 
 		@Override
 		public void run() {
-			//向数据库插入线程信息
-			if (!mDao.isExists(threadInfo.getUrl(), threadInfo.getId())) {
-				mDao.insertThread(threadInfo);
-			}
+
 			HttpURLConnection conn = null;
 			RandomAccessFile raf = null;
 			InputStream input = null;
 			try {
 				URL url = new URL(threadInfo.getUrl());
 				conn = (HttpURLConnection) url.openConnection();
-				conn.setConnectTimeout(3000);
+				conn.setConnectTimeout(5000);
 				conn.setRequestMethod("GET");
 				//设置下载位置
 				int start = threadInfo.getStart() + threadInfo.getFinished();
 				conn.setRequestProperty("Range", "bytes=" + start + "-" + threadInfo.getEnd());
+				Log.i("yang", threadInfo.getId() + ", start = "+start+", end = " + threadInfo.getEnd());
 
 				//设置文件写入位置
 				File file = new File(AppConfig.DOWNLOAD_PATH, mFileInfo.getFileName());
@@ -138,6 +138,7 @@ public class DownloadTask {
 
 				Intent intent = new Intent(AppConfig.ACTION_UPDATE);
 				mFinished += threadInfo.getFinished();
+				Log.d("yang", "conn.getResponseCode()-->"+conn.getResponseCode());
 				//开始下载
 				if (conn.getResponseCode() == HttpURLConnection.HTTP_PARTIAL) {
 					//读取数据

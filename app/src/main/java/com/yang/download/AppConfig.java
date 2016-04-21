@@ -12,6 +12,6 @@ public class AppConfig {
 	public static final String ACTION_UPDATE = "ACTION_UPDATE";
 	public static final String ACTION_FINISH = "ACTION_FINISH";
 
-	public static final String DOWNLOAD_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/download/";
+	public static final String DOWNLOAD_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/downloads/";
 	public static final int MSG_INIT = 0;
 }
